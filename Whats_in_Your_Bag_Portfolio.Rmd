@@ -1,0 +1,97 @@
+---
+title: "What’s in Your Bag? Survey Analysis"
+author: "Sarah McMahan"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+bag.data <- read.csv("WhatsinYourBag_Public.csv")
+head(bag.data)
+```
+
+
+# Responses by Region Plot
+```{r}
+#install.packages("maps")
+library(maps)
+
+bag <- read.csv("WhatsinYourBag_Public.csv")
+
+# count responses by state abbreviation
+state_counts <- table(bag$Region)
+state_counts <- state_counts[names(state_counts) %in% state.abb]
+
+# convert abbreviations to full lowercase state names
+state_names <- tolower(state.name[match(names(state_counts), state.abb)])
+
+# draw base map
+map("state", fill = TRUE, col = "white", bg = "lightblue", mar = c(0,0,2,0))
+title("Responses by State")
+
+# shade states pink: darker pink = more responses
+for(i in seq_along(state_names)) {
+  intensity <- as.numeric(state_counts[i]) / max(state_counts)
+  shade <- rgb(1, 0.8 - 0.5*intensity, 0.9 - 0.6*intensity)
+  
+  map("state",
+      regions = state_names[i],
+      fill = TRUE,
+      add = TRUE,
+      col = shade,
+      border = "black")
+}
+state_counts
+```
+
+
+# Most Unique Items People Carry
+```{r}
+bag <- read.csv("WhatsinYourBag_Public.csv", stringsAsFactors = FALSE)
+
+
+# Category labels were derived from the original open-ended responses before public release.
+# Only anonymized categories are shared to protect survey respondents.
+bag$UniqueItem_clean <- bag$UniqueItemCategory
+
+final_counts <- as.data.frame(sort(table(bag$UniqueItem_clean), decreasing = TRUE))
+names(final_counts) <- c("Category", "Count")
+
+#
+par(mar = c(5, 12, 4, 4))  # a little more room
+
+x_max <- max(final_counts$Count) * 1.25  # add space on the right
+
+bp <- barplot(final_counts$Count,
+              names.arg = final_counts$Category,
+              horiz = TRUE,
+              las = 1,
+              col = "lightblue",
+              border = NA,
+              main = "Unique Items by Category",
+              xlab = "Count",
+              cex.names = 0.9,
+              cex.main = 1.3,
+              cex.lab = 1.1,
+              xlim = c(0, x_max))
+
+text(x = final_counts$Count + max(final_counts$Count)*0.03,
+     y = bp,
+     labels = final_counts$Count,
+     cex = 0.8,
+     pos = 4)
+
+```
+
+
+
+
+
+
+
+
+
+
+
